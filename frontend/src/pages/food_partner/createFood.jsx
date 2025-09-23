@@ -1,7 +1,10 @@
-
 import { useState, useRef } from 'react';
 import '../../styles/food-form.css';
+import '../../styles/loader-overlay.css';
+import '../../styles/alert-box.css';
 import axios from '../../config/axios';
+import LoaderOverlay from '../../components/LoaderOverlay';
+import AlertBox from '../../components/AlertBox';
 
 const CreateFood = ({ onSubmit }) => {
   const [video, setVideo] = useState(null);
@@ -9,9 +12,11 @@ const CreateFood = ({ onSubmit }) => {
   const [description, setDescription] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const [alert, setAlert] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef();
+
 
 
   const validateVideo = (file) => {
@@ -21,19 +26,31 @@ const CreateFood = ({ onSubmit }) => {
     return '';
   };
 
+  const validateForm = () => {
+    if (!name.trim()) return 'Food name is required.';
+    if (name.length < 2) return 'Food name must be at least 2 characters.';
+    if (!description.trim()) return 'Description is required.';
+    if (description.length < 8) return 'Description must be at least 8 characters.';
+    if (!video) return 'A video file is required.';
+    const videoErr = validateVideo(video);
+    if (videoErr) return videoErr;
+    return '';
+  };
+
+
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     const validationMsg = validateVideo(file);
     if (validationMsg) {
-      setError(validationMsg);
+      setAlert({ type: 'error', message: validationMsg });
       setVideo(null);
       setVideoURL('');
       return;
     }
-    setError('');
     setVideo(file);
     setVideoURL(URL.createObjectURL(file));
   };
+
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -41,12 +58,11 @@ const CreateFood = ({ onSubmit }) => {
     const file = e.dataTransfer.files[0];
     const validationMsg = validateVideo(file);
     if (validationMsg) {
-      setError(validationMsg);
+      setAlert({ type: 'error', message: validationMsg });
       setVideo(null);
       setVideoURL('');
       return;
     }
-    setError('');
     setVideo(file);
     setVideoURL(URL.createObjectURL(file));
   };
@@ -61,18 +77,20 @@ const CreateFood = ({ onSubmit }) => {
     setDragActive(false);
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    if (!name || !description || !video) {
-      setError('All fields are required.');
+    const formErr = validateForm();
+    if (formErr) {
+      setAlert({ type: 'error', message: formErr });
       return;
     }
     setLoading(true);
+    setAlert(null);
     try {
       const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', description);
+      formData.append('name', name.trim());
+      formData.append('description', description.trim());
       formData.append('video', video);
 
       await axios.post('/api/food/food-partner/add-food-post', formData, {
@@ -82,30 +100,39 @@ const CreateFood = ({ onSubmit }) => {
         withCredentials: true,
       });
 
-      // Optionally clear form or show success
       setName('');
       setDescription('');
       setVideo(null);
       setVideoURL('');
-      setError('');
+      setAlert({ type: 'success', message: 'Food item added successfully!' });
       if (onSubmit) onSubmit();
-      // Optionally show a success message or redirect
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-        err?.message ||
-        'Failed to add food item. Please try again.'
-      );
+      setAlert({
+        type: 'error',
+        message:
+          err?.response?.data?.message ||
+          err?.message ||
+          'Failed to add food item. Please try again.'
+      });
     } finally {
       setLoading(false);
     }
   };
 
+
   return (
     <div className="food-form-container">
+      {loading && <LoaderOverlay />}
+      {alert && (
+        <AlertBox
+          type={alert.type}
+          message={alert.message}
+          onClose={() => setAlert(null)}
+        />
+      )}
       <div className="food-form-card">
         <h2 className="food-form-title">Add New Food Item</h2>
-        <form className="food-form" onSubmit={handleSubmit}>
+        <form className="food-form" onSubmit={handleSubmit} autoComplete="off" noValidate>
           <div className="form-group">
             <label className="form-label" htmlFor="food-name">Food Name</label>
             <input
@@ -115,7 +142,10 @@ const CreateFood = ({ onSubmit }) => {
               placeholder="Enter food name"
               value={name}
               onChange={e => setName(e.target.value)}
+              minLength={2}
+              maxLength={50}
               required
+              autoComplete="off"
             />
           </div>
           <div className="form-group">
@@ -126,7 +156,10 @@ const CreateFood = ({ onSubmit }) => {
               placeholder="Describe your food item"
               value={description}
               onChange={e => setDescription(e.target.value)}
+              minLength={8}
+              maxLength={200}
               required
+              autoComplete="off"
             />
           </div>
           <div className="form-group">
@@ -165,7 +198,6 @@ const CreateFood = ({ onSubmit }) => {
               )}
             </div>
           </div>
-          {error && <div className="form-error" style={{ color: 'var(--error-color)', marginBottom: 8 }}>{error}</div>}
           <button className="submit-button" type="submit" disabled={loading}>
             {loading ? 'Adding...' : 'Add Food Item'}
           </button>

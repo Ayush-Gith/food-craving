@@ -41,6 +41,16 @@ Uses CSS custom properties defined in `src/styles/theme.css`:
 2. **File Uploads**: Validates file type/size, creates object URLs for preview
 3. **Profile Grid**: Click-to-play with manual state management
 
+## Loader & Alert Patterns for Forms
+
+- When a form is submitted and a food item is being added, always show a loader overlay.
+- After the API call completes, hide the loader and show an overlay alert box in the **top right corner**.
+- The alert must display success or error messages depending on the API response.
+- Also apply validation and error handling as needed.
+- Use `AlertBox.jsx` and `LoaderOverlay.jsx` as the default React components for alerts and loaders, respectively.
+- Use `alert-box.css` and `loader-overlay.css` as the default CSS for these components.
+- This pattern is required for all form submissions (see `src/pages/food_partner/createFood.jsx` for reference).
+
 ### State Management
 - Uses React hooks (no external state library)
 - Video refs stored in `useRef({})` objects for multi-video management
