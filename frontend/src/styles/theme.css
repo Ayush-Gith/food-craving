@@ -4,6 +4,7 @@
   --primary-dark: #E85537;
   --primary-light: #FF8E75;
   --gradient-primary: linear-gradient(135deg, #FC6C4C 0%, #FF8E75 100%);
+  --loader-background: #FC6C4C;
 
   /* Secondary Colors */
   --secondary-color: #2A2B31;
@@ -56,6 +57,7 @@
     --bg-secondary: #242526;
     --bg-tertiary: #3A3B3C;
     --bg-accent: rgba(252, 108, 76, 0.1);
+    --loader-background: #ffffff;
     
     --text-primary: #FFFFFF;
     --text-secondary: #B0B3B8;
