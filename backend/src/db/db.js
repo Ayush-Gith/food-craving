@@ -1,0 +1,16 @@
+const moongoose = require('mongoose');
+
+const connectDB = async () => {
+    try {
+        await moongoose.connect(process.env.MONGODB_CONNECTION_STRING, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log('MongoDB connected');
+    } catch (error) {
+        console.error('MongoDB connection error:', error);
+        process.exit(1);
+    }
+}
+
+module.exports = connectDB;
