@@ -40,23 +40,53 @@
 }
 
 .video-overlay {
+    position: absolute;
+    left: 8px;
+    bottom: 80px;
+    z-index: 10;
+    color: #fff;
+    border-radius: 10px;
+    padding: 0px 0px 0px 8px;
+    max-width: 70vw;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.video-overlay.no-bg {
+  background: none;
+}
+
+.action-icons {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 20px;
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 30%, transparent 100%);
-  color: white;
-  z-index: 2;
+  right: 8px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 18px;
+  z-index: 12;
+}
+
+.action-icons-bottom-fixed {
+  position: absolute;
+  right: 8px;
+  bottom: 88px;
+  top: auto;
+  transform: none;
+  z-index: 10;
+}
+
+.nav-label {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #fff;
+  display: block;
 }
 
 .reel-description {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 400;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;

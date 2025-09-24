@@ -1,7 +1,7 @@
 const foodModel = require('../models/food.model');
 const likeModel = require('../models/likes.model');
 const bookmarkModel = require('../models/bookmark.model');
-const commentFoodModel = require('../models/commentFood.model');
+const commentFoodModel = require('../models/comment.model');
 const storageServices = require('../services/storage.service');
 import('uuid').then(uuid => {
     global.uuid = uuid.v4;
@@ -59,87 +59,148 @@ const getAllFoods = async (req, res) => {
 };  
 
 const likeFood = async (req, res) => {
-    const { foodID } = req.body;
+    const { foodId } = req.body;
     const user  = req.user;
 
     const isAlreadyLiked = await likeModel.findOne({
         user: user._id,
-        food: foodID
+        food: foodId
     });
 
     if(isAlreadyLiked) {
         await likeModel.deleteOne({
             user: user._id,
-            food: foodID
+            food: foodId
         });
-        await foodModel.findByIdAndUpdate(foodID, {
+        await foodModel.findByIdAndUpdate(foodId, {
             $inc : { likeCount: -1}
         });
-
-        return res.status(200).json({ message: 'Reel unliked successfully.' });
+        // Get updated like count
+        const food = await foodModel.findById(foodId);
+        return res.status(200).json({
+            message: 'Reel unliked successfully.',
+            liked: false,
+            likes: food ? food.likeCount : 0
+        });
     }
 
     const likeReel = new likeModel({
         user: user._id,
-        food: foodID
+        food: foodId
     });
-    await foodModel.findByIdAndUpdate(foodID, {
+    await foodModel.findByIdAndUpdate(foodId, {
         $inc : { likeCount: 1}
     });
 
     await likeReel.save();
-    return res.status(200).json({ message: 'Reel liked successfully.' });
+    // Get updated like count
+    const food = await foodModel.findById(foodId);
+    return res.status(200).json({
+        message: 'Reel liked successfully.',
+        liked: true,
+        likes: food ? food.likeCount : 0
+    });
 };
 
 const bookmarkFood = async (req, res) => {
-    const { foodID } = req.body;
+    const { foodId } = req.body;
     const user  = req.user;
 
     const isAlreadyBookmarked = await bookmarkModel.findOne({
         user: user._id,
-        food: foodID
+        food: foodId
     });
 
     if(isAlreadyBookmarked) {
         await bookmarkModel.deleteOne({
             user: user._id,
-            food: foodID
+            food: foodId
         });
-        await foodModel.findByIdAndUpdate(foodID, {
+        await foodModel.findByIdAndUpdate(foodId, {
             $inc : { bookmarkCount: -1}
         });
-
-        return res.status(200).json({ message: 'Bookmark removed successfully.' });
+        // Get updated bookmark count
+        const food = await foodModel.findById(foodId);
+        return res.status(200).json({
+            message: 'Bookmark removed successfully.',
+            bookmarked: false,
+            bookmarks: food ? food.bookmarkCount : 0
+        });
     }
 
-    const likeReel = new bookmarkModel({
+    const bookmark = new bookmarkModel({
         user: user._id,
-        food: foodID
+        food: foodId
     });
-    await foodModel.findByIdAndUpdate(foodID, {
+    await foodModel.findByIdAndUpdate(foodId, {
         $inc : { bookmarkCount: 1}
     });
 
-    await likeReel.save();
-    return res.status(200).json({ message: 'Reel bookmarked successfully.' });
+    await bookmark.save();
+    // Get updated bookmark count
+    const food = await foodModel.findById(foodId);
+    return res.status(200).json({
+        message: 'Reel bookmarked successfully.',
+        bookmarked: true,
+        bookmarks: food ? food.bookmarkCount : 0
+    });
 };
 
 const commentFood = async (req, res) => {
     try {
-        const { foodID } = req.body;
-        const user  = req.user;
+        const { foodId, commentId, comment, action } = req.body;
+        const user = req.user;
 
-        const comment = new commentFoodModel({
-            user: user._id,
-            food: foodID
-        });
+        // Add a comment
+        if (!action || action === 'add') {
+            if (!foodId || !comment) {
+                return res.status(400).json({ success: false, message: 'foodId and comment are required' });
+            }
 
-        await foodModel.findByIdAndUpdate(foodID, {
-            $inc : { commentCount: 1}
-        });
+            const newComment = new commentFoodModel({
+                user: user._id,
+                food: foodId,
+                comment,
+            });
 
-        await comment.save();
-        return res.status(200).json({ message: 'Reel liked successfully.' });
+            await newComment.save();
+
+            await foodModel.findByIdAndUpdate(foodId, { $inc: { commentCount: 1 } });
+
+            return res.status(201).json({ success: true, message: 'Comment added successfully', data: newComment });
+        }
+
+        // Soft-delete a comment
+        if (action === 'delete') {
+            if (!commentId) {
+                return res.status(400).json({ success: false, message: 'commentId is required for delete action' });
+            }
+
+            const existing = await commentFoodModel.findById(commentId);
+            if (!existing) {
+                return res.status(404).json({ success: false, message: 'Comment not found' });
+            }
+
+            // Only comment owner or food partner/admin can delete - allow owner for now
+            if (existing.user.toString() !== user._id.toString()) {
+                return res.status(403).json({ success: false, message: 'Not authorized to delete this comment' });
+            }
+
+            if (existing.isDeleted) {
+                return res.status(400).json({ success: false, message: 'Comment already deleted' });
+            }
+
+            existing.isDeleted = true;
+            existing.deletedAt = new Date();
+            await existing.save();
+
+            // decrement commentCount on the food
+            await foodModel.findByIdAndUpdate(existing.food, { $inc: { commentCount: -1 } });
+
+            return res.status(200).json({ success: true, message: 'Comment deleted (soft) successfully' });
+        }
+
+        return res.status(400).json({ success: false, message: 'Invalid action' });
     } catch (error) {
         console.error('Error commenting on the food post:', error);
         res.status(500).json({
@@ -155,9 +216,9 @@ const getbookmarkedFood = async (req, res) => {
         const userId = req.user._id
 
         // Find all bookmarks by the user and populate the food details
-        const bookmarks = await Bookmark.find({ user: userId }).populate({
+        const bookmarks = await bookmarkModel.find({ user: userId }).populate({
             path: 'food',
-            model: 'food',
+            model: 'FoodItem',
         });
 
         // Extract the populated food documents

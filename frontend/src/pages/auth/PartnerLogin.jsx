@@ -1,8 +1,7 @@
 import '../../styles/theme.css';
 import '../../styles/auth.css';
 import { Link, useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useState } from 'react';
 import axios from '../../config/axios';
 
@@ -58,7 +57,7 @@ const PartnerLogin = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex="-1"
               >
-                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
           </div>

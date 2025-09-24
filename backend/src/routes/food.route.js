@@ -17,9 +17,9 @@ router.post('/food-partner/add-food-post', authMiddleware.authFoodPartnerMiddlew
 // User APIs
 // GET /api/food [PROTECTED]
 router.get('/foods', authMiddleware.authUserMiddleware, foodController.getAllFoods);
-router.get('/likes', authMiddleware.authUserMiddleware, foodController.likeFood);
-router.get('/bookmark', authMiddleware.authUserMiddleware, foodController.bookmarkFood);
-router.get('/comment', authMiddleware.authUserMiddleware, foodController.commentFood);
-router.get('bookmark-food-list', authMiddleware.authUserMiddleware, foodController.getbookmarkedFood)
+router.post('/likes', authMiddleware.authUserMiddleware, foodController.likeFood);
+router.post('/bookmark', authMiddleware.authUserMiddleware, foodController.bookmarkFood);
+router.post('/comment', authMiddleware.authUserMiddleware, foodController.commentFood);
+router.get('/bookmark-food-list', authMiddleware.authUserMiddleware, foodController.getbookmarkedFood);
 
 module.exports = router;

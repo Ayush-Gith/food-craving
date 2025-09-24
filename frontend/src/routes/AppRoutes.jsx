@@ -15,6 +15,7 @@ const AppRoutes = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/saved" element={<Saved />} />
         <Route path="/login" element={<UserLogin />} />
         <Route path="/register" element={<UserRegister />} />
         <Route path="/partner/login" element={<PartnerLogin />} />
@@ -26,5 +27,6 @@ const AppRoutes = () => {
     </Router>
   );
 };
+import Saved from '../pages/general/Saved';
 
 export default AppRoutes;
