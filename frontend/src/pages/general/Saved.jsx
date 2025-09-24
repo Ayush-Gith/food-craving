@@ -18,9 +18,9 @@ const Saved = () => {
 
   useEffect(() => {
     setLoading(true);
-    axios.get('/api/food/saved-food-items', { withCredentials: true })
+    axios.get('/api/food/bookmark-food-list', { withCredentials: true })
       .then(res => {
-        setVideos(res.data.foods || []);
+        setVideos(res.data.data || []);
         setLoading(false);
       })
       .catch(err => {
@@ -42,12 +42,20 @@ const Saved = () => {
     <div className="saved-page">
       {loading && <LoaderOverlay />}
       {alert && <AlertBox message={alert} onClose={() => setAlert(null)} />}
-      <button className="back-btn" onClick={handleBack} aria-label="Back">
-        <BiArrowBack size={22} color="#fff" />
-      </button>
-      <VideoGrid videos={videos} onPlay={handlePlay} />
+      <div className="saved-header">
+        <button className="back-btn" onClick={handleBack} aria-label="Back">
+          <BiArrowBack size={22} color="#fff" />
+        </button>
+        <h2 className="saved-title">Saved Videos</h2>
+        <div style={{ width: 38 }} />
+      </div>
+
+      <div className="saved-grid-wrapper">
+        <VideoGrid videos={videos} onPlay={handlePlay} />
+      </div>
       {selectedIdx !== null && (
         <div className="saved-video-player">
+          <button className="saved-close-btn" onClick={() => setSelectedIdx(null)} aria-label="Close">X</button>
           <video src={videos[selectedIdx].video} controls autoPlay />
           <div className="saved-desc">
             <p>{videos[selectedIdx].description}</p>
@@ -60,9 +68,9 @@ const Saved = () => {
               videoId={videos[selectedIdx]._id}
               liked={videos[selectedIdx].liked}
               bookmarked={videos[selectedIdx].bookmarked}
-              likeCount={videos[selectedIdx].likes}
-              bookmarkCount={videos[selectedIdx].bookmarks}
-              commentCount={videos[selectedIdx].comments}
+                likeCount={videos[selectedIdx].likeCount}
+                bookmarkCount={videos[selectedIdx].bookmarkCount}
+                commentCount={videos[selectedIdx].commentCount}
             />
           </div>
         </div>

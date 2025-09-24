@@ -109,9 +109,9 @@ const Home = () => {
                     videoId={video._id}
                     liked={video.liked}
                     bookmarked={video.bookmarked}
-                    likeCount={video.likes}
-                    bookmarkCount={video.bookmarks}
-                    commentCount={video.comments}
+                    likeCount={video.likeCount}
+                    bookmarkCount={video.bookmarkCount}
+                    commentCount={video.commentCount}
                   />
                 </div>
               </>
