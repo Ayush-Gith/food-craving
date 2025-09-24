@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import VideoGrid from '../../components/VideoGrid';
+import ActionIcons from '../../components/ActionIcons';
 import BottomNav from '../../components/BottomNav';
 import '../../styles/saved.css';
 import { BiArrowBack } from 'react-icons/bi';
@@ -53,6 +54,16 @@ const Saved = () => {
             <button className="visit-store-btn" onClick={() => navigate(`/partner/${videos[selectedIdx].foodPartner}`)}>
               Visit Store
             </button>
+          </div>
+          <div className="action-icons action-icons-bottom-fixed">
+            <ActionIcons
+              videoId={videos[selectedIdx]._id}
+              liked={videos[selectedIdx].liked}
+              bookmarked={videos[selectedIdx].bookmarked}
+              likeCount={videos[selectedIdx].likes}
+              bookmarkCount={videos[selectedIdx].bookmarks}
+              commentCount={videos[selectedIdx].comments}
+            />
           </div>
         </div>
       )}

@@ -59,82 +59,104 @@ const getAllFoods = async (req, res) => {
 };  
 
 const likeFood = async (req, res) => {
-    const { foodID } = req.body;
+    const { foodId } = req.body;
     const user  = req.user;
 
     const isAlreadyLiked = await likeModel.findOne({
         user: user._id,
-        food: foodID
+        food: foodId
     });
 
     if(isAlreadyLiked) {
         await likeModel.deleteOne({
             user: user._id,
-            food: foodID
+            food: foodId
         });
-        await foodModel.findByIdAndUpdate(foodID, {
+        await foodModel.findByIdAndUpdate(foodId, {
             $inc : { likeCount: -1}
         });
-
-        return res.status(200).json({ message: 'Reel unliked successfully.' });
+        // Get updated like count
+        const food = await foodModel.findById(foodId);
+        return res.status(200).json({
+            message: 'Reel unliked successfully.',
+            liked: false,
+            likes: food ? food.likeCount : 0
+        });
     }
 
     const likeReel = new likeModel({
         user: user._id,
-        food: foodID
+        food: foodId
     });
-    await foodModel.findByIdAndUpdate(foodID, {
+    await foodModel.findByIdAndUpdate(foodId, {
         $inc : { likeCount: 1}
     });
 
     await likeReel.save();
-    return res.status(200).json({ message: 'Reel liked successfully.' });
+    // Get updated like count
+    const food = await foodModel.findById(foodId);
+    return res.status(200).json({
+        message: 'Reel liked successfully.',
+        liked: true,
+        likes: food ? food.likeCount : 0
+    });
 };
 
 const bookmarkFood = async (req, res) => {
-    const { foodID } = req.body;
+    const { foodId } = req.body;
     const user  = req.user;
 
     const isAlreadyBookmarked = await bookmarkModel.findOne({
         user: user._id,
-        food: foodID
+        food: foodId
     });
 
     if(isAlreadyBookmarked) {
         await bookmarkModel.deleteOne({
             user: user._id,
-            food: foodID
+            food: foodId
         });
-        await foodModel.findByIdAndUpdate(foodID, {
+        await foodModel.findByIdAndUpdate(foodId, {
             $inc : { bookmarkCount: -1}
         });
-
-        return res.status(200).json({ message: 'Bookmark removed successfully.' });
+        // Get updated bookmark count
+        const food = await foodModel.findById(foodId);
+        return res.status(200).json({
+            message: 'Bookmark removed successfully.',
+            bookmarked: false,
+            bookmarks: food ? food.bookmarkCount : 0
+        });
     }
 
-    const likeReel = new bookmarkModel({
+    const bookmark = new bookmarkModel({
         user: user._id,
-        food: foodID
+        food: foodId
     });
-    await foodModel.findByIdAndUpdate(foodID, {
+    await foodModel.findByIdAndUpdate(foodId, {
         $inc : { bookmarkCount: 1}
     });
 
-    await likeReel.save();
-    return res.status(200).json({ message: 'Reel bookmarked successfully.' });
+    await bookmark.save();
+    // Get updated bookmark count
+    const food = await foodModel.findById(foodId);
+    return res.status(200).json({
+        message: 'Reel bookmarked successfully.',
+        bookmarked: true,
+        bookmarks: food ? food.bookmarkCount : 0
+    });
 };
 
 const commentFood = async (req, res) => {
     try {
-        const { foodID } = req.body;
+        const { foodId } = req.body;
         const user  = req.user;
 
         const comment = new commentFoodModel({
             user: user._id,
-            food: foodID
+            food: foodId
         });
 
-        await foodModel.findByIdAndUpdate(foodID, {
+        await foodModel.findByIdAndUpdate(foodId, {
             $inc : { commentCount: 1}
         });
 
