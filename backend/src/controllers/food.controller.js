@@ -146,68 +146,83 @@ const bookmarkFood = async (req, res) => {
     });
 };
 
-const commentFood = async (req, res) => {
+const addComment = async (req, res) => {
     try {
-        const { foodId, commentId, comment, action } = req.body;
+        const { foodId, comment } = req.body;
         const user = req.user;
 
-        // Add a comment
-        if (!action || action === 'add') {
-            if (!foodId || !comment) {
-                return res.status(400).json({ success: false, message: 'foodId and comment are required' });
-            }
-
-            const newComment = new commentFoodModel({
-                user: user._id,
-                food: foodId,
-                comment,
-            });
-
-            await newComment.save();
-
-            await foodModel.findByIdAndUpdate(foodId, { $inc: { commentCount: 1 } });
-
-            return res.status(201).json({ success: true, message: 'Comment added successfully', data: newComment });
+        if (!foodId || !comment) {
+            return res.status(400).json({ success: false, message: 'foodId and comment are required' });
         }
 
-        // Soft-delete a comment
-        if (action === 'delete') {
-            if (!commentId) {
-                return res.status(400).json({ success: false, message: 'commentId is required for delete action' });
-            }
-
-            const existing = await commentFoodModel.findById(commentId);
-            if (!existing) {
-                return res.status(404).json({ success: false, message: 'Comment not found' });
-            }
-
-            // Only comment owner or food partner/admin can delete - allow owner for now
-            if (existing.user.toString() !== user._id.toString()) {
-                return res.status(403).json({ success: false, message: 'Not authorized to delete this comment' });
-            }
-
-            if (existing.isDeleted) {
-                return res.status(400).json({ success: false, message: 'Comment already deleted' });
-            }
-
-            existing.isDeleted = true;
-            existing.deletedAt = new Date();
-            await existing.save();
-
-            // decrement commentCount on the food
-            await foodModel.findByIdAndUpdate(existing.food, { $inc: { commentCount: -1 } });
-
-            return res.status(200).json({ success: true, message: 'Comment deleted (soft) successfully' });
-        }
-
-        return res.status(400).json({ success: false, message: 'Invalid action' });
-    } catch (error) {
-        console.error('Error commenting on the food post:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to comment on the food post',
-            error: error.message,
+        const newComment = new commentFoodModel({
+            user: user._id,
+            food: foodId,
+            comment,
         });
+
+        await newComment.save();
+
+        await foodModel.findByIdAndUpdate(foodId, { $inc: { commentCount: 1 } });
+
+        return res.status(201).json({ success: true, message: 'Comment added successfully', data: newComment });
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        res.status(500).json({ success: false, message: 'Failed to add comment', error: error.message });
+    }
+};
+
+const deleteComment = async (req, res) => {
+    try {
+        const { commentId } = req.params;
+        const user = req.user;
+
+        if (!commentId) {
+            return res.status(400).json({ success: false, message: 'commentId is required' });
+        }
+
+        const existing = await commentFoodModel.findById(commentId);
+        if (!existing) {
+            return res.status(404).json({ success: false, message: 'Comment not found' });
+        }
+
+        if (existing.user.toString() !== user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Not authorized to delete this comment' });
+        }
+
+        if (existing.isDeleted) {
+            return res.status(400).json({ success: false, message: 'Comment already deleted' });
+        }
+
+        existing.isDeleted = true;
+        existing.deletedAt = new Date();
+        await existing.save();
+
+        await foodModel.findByIdAndUpdate(existing.food, { $inc: { commentCount: -1 } });
+
+        return res.status(200).json({ success: true, message: 'Comment deleted (soft) successfully' });
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete comment', error: error.message });
+    }
+};
+
+const getComments = async (req, res) => {
+    try {
+        const { foodId } = req.params;
+        if (!foodId) {
+            return res.status(400).json({ success: false, message: 'foodId is required' });
+        }
+
+        // Fetch non-deleted comments for the food, populate user basic info
+        const comments = await commentFoodModel.find({ food: foodId, isDeleted: false })
+            .sort({ createdAt: -1 })
+            .populate({ path: 'user', select: '_id fullname email' });
+
+        return res.status(200).json({ success: true, count: comments.length, data: comments });
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch comments', error: error.message });
     }
 };
 
@@ -239,4 +254,4 @@ const getbookmarkedFood = async (req, res) => {
     }
 };
 
-module.exports = { addFoodItem, getAllFoods, likeFood, bookmarkFood, commentFood, getbookmarkedFood };
+module.exports = { addFoodItem, getAllFoods, likeFood, bookmarkFood, addComment, deleteComment, getComments, getbookmarkedFood };

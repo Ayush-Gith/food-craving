@@ -1,33 +1,17 @@
-import { useRef, useEffect } from 'react';
+import { useState } from 'react';
 import ActionIcons from './ActionIcons';
+import CommentSection from './CommentSection';
 import '../styles/video-player.css';
 
-const VideoPlayer = ({ video, onVisitStore }) => {
-  const videoRef = useRef(null);
+const VideoPlayer = ({ video }) => {
+  const [showComments, setShowComments] = useState(false);
 
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
-    }
-  }, [video]);
+  const handleCommentClick = () => {
+    setShowComments(true);
+  };
 
   return (
-    <div className="video-player-wrapper">
-      <video
-        ref={videoRef}
-        src={video.video}
-        className="reel-video"
-        loop
-        muted
-        playsInline
-        autoPlay
-      />
-      <div className="video-overlay">
-        <p className="reel-description">{video.description}</p>
-        <button className="visit-store-btn" onClick={() => onVisitStore(video.foodPartner)}>
-          Visit Store
-        </button>
-      </div>
+    <>
       <ActionIcons
         videoId={video._id}
         liked={video.liked}
@@ -35,8 +19,15 @@ const VideoPlayer = ({ video, onVisitStore }) => {
         likeCount={video.likeCount}
         bookmarkCount={video.bookmarkCount}
         commentCount={video.commentCount}
+        onCommentClick={handleCommentClick}
       />
-    </div>
+      {showComments && (
+        <>
+          <div className="comment-overlay-backdrop" onClick={() => setShowComments(false)} />
+          <CommentSection videoId={video._id} onClose={() => setShowComments(false)} />
+        </>
+      )}
+    </>
   );
 };
 

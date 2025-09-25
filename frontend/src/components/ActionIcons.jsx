@@ -5,7 +5,7 @@ import { FaRegCommentDots } from 'react-icons/fa';
 import '../styles/action-icons.css';
 import axios from '../config/axios';
 
-const ActionIcons = ({ videoId, liked, bookmarked, likeCount, bookmarkCount, commentCount, onAction }) => {
+const ActionIcons = ({ videoId, liked, bookmarked, likeCount, bookmarkCount, commentCount, onAction, onCommentClick }) => {
   const [isLiked, setIsLiked] = useState(liked);
   const [isBookmarked, setIsBookmarked] = useState(bookmarked);
   const [likes, setLikes] = useState(typeof likeCount === 'number' ? likeCount : 0);
@@ -41,17 +41,12 @@ const ActionIcons = ({ videoId, liked, bookmarked, likeCount, bookmarkCount, com
     setLoading(false);
   };
 
-  const handleComment = async () => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const res = await axios.post('/api/food/comment', { foodId: videoId }, { withCredentials: true });
-      setComments(res.data.comments);
-      onAction && onAction('comment', res.data);
-    } catch {
-      // ignore error
+  const handleComment = () => {
+    if (onCommentClick) {
+      onCommentClick();
+    } else {
+      console.log('onCommentClick prop is not provided');
     }
-    setLoading(false);
   };
 
   return (

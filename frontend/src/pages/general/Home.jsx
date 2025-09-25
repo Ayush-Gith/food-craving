@@ -5,7 +5,7 @@ import "../../styles/reels.css";
 import BottomNav from "../../components/BottomNav";
 import LoaderOverlay from "../../components/LoaderOverlay";
 import AlertBox from "../../components/AlertBox";
-import ActionIcons from "../../components/ActionIcons";
+import VideoPlayer from "../../components/VideoPlayer";
 
 const Home = () => {
   const [videos, setVideos] = useState([]);
@@ -105,13 +105,9 @@ const Home = () => {
                   </button>
                 </div>
                 <div className="action-icons action-icons-bottom-fixed">
-                  <ActionIcons
-                    videoId={video._id}
-                    liked={video.liked}
-                    bookmarked={video.bookmarked}
-                    likeCount={video.likeCount}
-                    bookmarkCount={video.bookmarkCount}
-                    commentCount={video.commentCount}
+                  <VideoPlayer 
+                    video={video}
+                    onVisitStore={handleVisitStore}
                   />
                 </div>
               </>
