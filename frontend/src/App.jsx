@@ -7,6 +7,7 @@ import './styles/action-icons.css';
 import './styles/video-grid.css';
 import './styles/video-player.css';
 import './styles/saved.css';
+import './styles/comment-section.css';
 
 function App() {
 
