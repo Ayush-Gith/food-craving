@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useState } from 'react';
 import axios from '../../config/axios';
+import GoogleSignIn from '../../components/GoogleSignIn';
 
 const PartnerRegister = () => {
   const navigate = useNavigate();
@@ -113,6 +114,7 @@ const PartnerRegister = () => {
         <div className="auth-divider">
           <span>OR</span>
         </div>
+        <GoogleSignIn userType="partner" text="Sign up with Google" />
         <div className="auth-links">
           <span>
             Already a partner? <Link to="/partner/login">Sign in to dashboard</Link>

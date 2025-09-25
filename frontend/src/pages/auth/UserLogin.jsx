@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useState } from 'react';
 import axios from '../../config/axios';
+import GoogleSignIn from '../../components/GoogleSignIn';
 
 const UserLogin = () => {
   const navigate = useNavigate();
@@ -69,6 +70,7 @@ const UserLogin = () => {
         <div className="auth-divider">
           <span>OR</span>
         </div>
+        <GoogleSignIn userType="user" text="Continue with Google" />
         <div className="auth-links">
           <span>
             New to Food Reels? <Link to="/register">Create an account</Link>

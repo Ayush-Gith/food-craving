@@ -2,6 +2,7 @@ const userModel = require('../models/user.model');
 const foodPartnerModel = require('../models/food-partner.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const passport = require('../config/passport');
 
 const userRegister = async (req, res) => {
     const { fullname, email, password } = req.body;
@@ -100,11 +101,41 @@ const foodPartnerLogout = (req, res) => {
     res.status(200).json({ message: 'Food Partner logged out successfully' });
 };
 
+// Google OAuth success callback
+const googleAuthSuccess = (req, res) => {
+    if (req.user) {
+        const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.cookie('token', token);
+        
+        // Redirect based on user type
+        if (req.user.type === 'user') {
+            res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+        } else if (req.user.type === 'partner') {
+            // Check if partner profile is complete
+            const partner = req.user;
+            if (!partner.phone || !partner.address) {
+                res.redirect(`${process.env.CLIENT_URL}/complete-profile?auth=success`);
+            } else {
+                res.redirect(`${process.env.CLIENT_URL}/create-food?auth=success`);
+            }
+        }
+    } else {
+        res.redirect(`${process.env.CLIENT_URL}/login?auth=failed`);
+    }
+};
+
+// Google OAuth failure callback
+const googleAuthFailure = (req, res) => {
+    res.redirect(`${process.env.CLIENT_URL}/login?auth=failed`);
+};
+
 module.exports = {
     userRegister,
     userLogin,
     userLogout,
     foodPartnerRegister,
     foodPartnerLogin,
-    foodPartnerLogout
+    foodPartnerLogout,
+    googleAuthSuccess,
+    googleAuthFailure
 };
