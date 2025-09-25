@@ -7,6 +7,7 @@ import { BsSendFill } from "react-icons/bs";
 const CommentSection = ({ videoId, onClose }) => {
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [error, setError] = useState(null);
 
@@ -32,22 +33,29 @@ const CommentSection = ({ videoId, onClose }) => {
     if (!newComment.trim()) return;
 
     try {
-      setIsLoading(true);
+      setIsSubmitting(true);
+      setError(null); // Clear previous errors
+      
       const response = await axios.post('/api/food/comment', {
         foodId: videoId,
         comment: newComment.trim()
+      }, {
+        withCredentials: true // Ensure cookies are sent
       });
+      
       if (response.data.success) {
         setNewComment('');
-        await fetchComments(); // Refresh comments
+        setError(null);
+        await fetchComments(); // Refresh comments to show the new one
       } else {
-        setError('Failed to post comment');
+        setError(response.data.message || 'Failed to post comment');
       }
     } catch (err) {
-      setError('Failed to post comment');
       console.error('Error posting comment:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to post comment';
+      setError(errorMessage);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -116,7 +124,7 @@ const CommentSection = ({ videoId, onClose }) => {
           <button 
             type="submit" 
             className="submit-button"
-            disabled={!newComment.trim()}
+            disabled={!newComment.trim() || isSubmitting}
             aria-label="Send comment"
           >
             <BsSendFill />
